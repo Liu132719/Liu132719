@@ -1,0 +1,50 @@
+body,h1,h2,h3,h4,h5,h6,hr,p,dl,dt,dd,ul,ol,li,pre,form,button,input,textarea,th,td{
+	margin: 0px;
+	padding: 0px;
+}
+
+/**{margin:0;padding:0;list-style-type:none;}*/
+
+ul,ol,li{list-style:none;}
+img{ border:0px;}
+
+A {
+	COLOR: #07519a; TEXT-DECORATION: none;
+}
+A:hover {
+	COLOR: #f60; TEXT-DECORATION: none;
+}
+
+.inblock{
+	display: inline-block;
+	font-size: 16px;
+}
+
+.box{
+	width: auto; background-color: white;box-shadow:0px 1px 2px 0px rgba(0,0,0,.05); border-radius: 5px;
+}
+
+.oo-row{
+	font-size: 0px;
+}
+
+.oo-block{
+	display: inline-block; font-size: 16px;
+
+}
+
+
+.ui-table{
+	border: 0px solid #EEE; color: #5f5f5f; background-color: white;
+	font-size: 14px;
+}
+
+.ui-table tr{
+	height: 46px;
+}
+
+.ui-table label{
+	width: 80px;
+}
+
+
