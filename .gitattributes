@@ -9,3 +9,4 @@ edgeview/msedge.dll filter=lfs diff=lfs merge=lfs -text
 cache/whisper/medium.pt filter=lfs diff=lfs merge=lfs -text
 cache/torch/hub/checkpoints/955717e8-8726e21a.th filter=lfs diff=lfs merge=lfs -text
 Python38/Lib/site-packages/__pycache__ filter=lfs diff=lfs merge=lfs -text
+Python38/Lib/site-packages/_distutils_hack filter=lfs diff=lfs merge=lfs -text
