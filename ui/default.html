@@ -1,0 +1,176 @@
+<html lang="en-US">
+<head>
+    <title>批量换脸</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="keywords" content="MD5加密,MD5在线加密,MD5,16位,32位">
+    <meta name="description" content="MD5加密,MD5在线加密,MD5,16位,32位,16位加密,32位加密" />
+    <meta name="Copyright" content="www.ooai8.com 版权所有,文章可自由转载,请注明文章出处" />
+    <link href="layui/css/layui.css" rel="stylesheet">
+    <link href="css/base.css" rel="stylesheet">
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
+    <script type="text/javascript" src="js/roop.js"></script>
+    <script type="text/javascript" src="layui/layui.js"></script>
+</head>
+<body>
+<div class="layui-bg-gray" style="padding: 0px 15px 15px 15px;">
+    <form class="layui-form" action="">
+        <div class="box" style="margin-top:15px; background-color: white">
+            <blockquote class="layui-elem-quote">
+                <p>整合版基于项目 <a href="https://github.com/Plachtaa/VITS-fast-fine-tuning" target="_blank">
+                    https://github.com/Plachtaa/VITS-fast-fine-tuning</a> 整合优化
+                </p>
+                <p>软件使用过程中若用到人物视频、声音、人脸等数据集，必须获得对方授权许可，若未获得请立刻停止使用。</p>
+                <p>此软件仅供娱乐和学习交流、不可用于视频或音频欺诈、人脸识别、声音克隆等一切违反法律的欺诈行为。若有</p>
+                <p>此行为是用户个人行为。与资源发布者无关。与原作者无关。</p>
+                <p>任何发布到公共平台的基于此软件的作品，都必须要明确标注为AI合成，并且标明数据来源。</p>
+                <p>整合软件唯一出处(维护与升级同理)：<a id="ooai8_link1" href="javascript:void(0)">https://www.ooai8.com</a></p>
+                <p>技术交流群：1群42940310、2群17108654  QQ频道：https://pd.qq.com/s/g9bsr9zzs</p>
+                <p>若您获取软件渠道不是圈圈AI吧请回归原始出处：www.ooai8.com 软件永久免费。绝无二次收费。</p>
+            </blockquote>
+        </div>
+        <div class="box" style="margin-top:15px; background-color: white">
+            <blockquote class="layui-elem-quote">
+                <p>请选择你训练好的模型，默认训练好的路径是：./OUTPUT_MODEL/G_latest.pth 若没有挪动就不用改可直接启动</p>
+                <p>若您训练好的模型改变了路径，那么就要重新选择G_latest.pth的位置</p>
+                <p>重要说明：若您重新保存了模型位置，记得将config.json放在同一目录下。不然可能无法读取到config.json</p>
+            </blockquote>
+        </div>
+        <div class="box" style="margin-top:15px;">
+            <div class="layui-form-item" style="height: 60px;">
+                <div class="layui-inline" style="margin-top: 10px;">
+                    <label class="layui-form-label">选择模型</label>
+                    <div class="layui-input-inline" style="width: 496px;">
+                        <input id="model_path" class="layui-input" value="./OUTPUT_MODEL/G_latest.pth"/>
+                    </div>
+                    <div class="layui-form-mid" style="padding: 0!important;">
+                        <button id="button_model_select" type="button" class="layui-btn layui-btn-fluid">更换模型</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box" style="margin-top:10px;height: 64px;">
+            <div style="height: 10px;"></div>
+            <div style=" width: auto; height: 44px; text-align: center">
+                <button id="execute_button" type="button" class="layui-btn layui-btn-lg" style="width: 160px;">开始执行</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script language="javascript">
+
+    // var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+    // form.render();
+
+    var layer = layui.layer;
+    var util = layui.util;
+    // 批量事件
+
+    let settings  = {};
+    let def = {};
+    let source_face_path = '';
+    let target_source_path = '';
+
+    let command_pre = "python run.py";
+    let roop_params =[
+        {key:"--source-path",value:null},
+        {key:"--name-start",value:null},
+        {key:"--name-bit",value:null},
+        {key:"--file-type",value:null},
+    ]
+
+    let command_params = "";
+
+    function refresh_command(scope) {
+
+        scope = (typeof scope == 'string') ? scope : '';
+
+        let run_params_str = "";
+        console.log('roop_params',roop_params);
+        for(let i=0; i<roop_params.length; i++) {
+            if(roop_params[i].value != null) {
+                console.log("type:",typeof roop_params[i].value);
+                if (in_array(roop_params[i].key, ["--source","--target","--output"])) {
+                    run_params_str += ' ' + roop_params[i].key + ' "' + roop_params[i].value+'"';
+                } else if (typeof roop_params[i].value == 'boolean') {
+                    run_params_str += ' ' + roop_params[i].key;
+                } else {
+                    run_params_str += ' ' + roop_params[i].key + ' ' + roop_params[i].value;
+                }
+            }else{
+                console.log("else:",'null');
+            }
+        }
+        //run_params_str = pre_match(run_params_str);
+        let venv_str = '@echo off\n' +
+            '\n' +
+            'call venv.bat\n'+
+            'echo on\n';
+        run_params_str = 'python ooai8.py --script rename'+run_params_str+'\n';
+        let end_str = '@echo off\n'+ 'pause';
+
+        if(scope == 'all'){
+            run_params_str = venv_str + run_params_str +end_str;
+        }
+
+        return run_params_str;
+    }
+
+    function onExecute(str) {
+        //alert(str);
+
+        let json = $.parseJSON(str);
+
+        if(json.cmd == "read_file_json"){
+            // settings = json.data.json;
+            // def = settings.default ? settings.default : {};
+            // console.log('def',def);
+            // source_face_path = (typeof(def.source_face_path) == 'string') ? def.source_face_path : '';
+            // target_source_path = (typeof(def.target_source_path) == 'string') ? def.target_source_path : '';
+        }if(json.cmd == "open_dialog"){
+            let pth_path = json.data.path;
+            // if(!/^[0-9a-zA-Z-_:\.\s\/]+$/.test(source_path)){
+            //     layer.alert("图片目录不可以出现中文、空格、特殊符合等");return false;
+            // }
+            $('#model_path').val(pth_path);
+        }
+    }
+    
+    $(document).ready(function(){
+        // window.chrome.webview.postMessage({ cmd: "read_file_json", data: {filePath:'settings.json'} });
+
+        $('#ooai8_link1').on('click', function () {
+            window.chrome.webview.postMessage({
+                cmd: "open_ooai8",
+                data: {
+                    uri : "",
+                }
+            });
+        });
+
+        $('#button_model_select').on('click', function () {
+            //$("#source_path").trigger('click');
+            window.chrome.webview.postMessage({
+                cmd: "open_dialog",
+                identify:"select_pth",
+                data: {
+                    dir : "",
+                    filter : "模型文件(*.pth)|*.pth|全部文件(*.*)|*.*",
+                }
+            });
+        });
+
+        $('#execute_button').on('click', function () {
+            //window.chrome.webview.postMessage("sdfsf");
+            let path = $('#model_path').val();
+            window.chrome.webview.postMessage({ cmd: "cmd_run", data: {path:path} });
+        });
+
+    });
+
+</script>
+</body>
+</html>
